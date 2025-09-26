@@ -2,14 +2,23 @@ package com.gacha.wiki.controller;
 
 import com.gacha.wiki.entity.User;
 import com.gacha.wiki.service.UserService;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.Valid;
+import org.mapstruct.Mapper;
+import org.mapstruct.control.MappingControl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/user")
+@RequestMapping("/api/users")
 public class UserController {
     private final UserService userService;
 
@@ -24,28 +33,40 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public Optional<User> findById(@PathVariable Long id) {
-        return userService.findById(id);
+    public ResponseEntity<User> findById(@PathVariable Long id) {
+
+        try {
+            return ResponseEntity.ok(userService.findById(id));
+        }catch (EntityNotFoundException e){
+            return ResponseEntity.notFound().build();
+        }
     }
 
 
     @PostMapping("")
-    public User save(@RequestBody User user) {
-        return userService.save(user);
+    public ResponseEntity<User> save(@Valid @RequestBody User user) {
+
+        User created = userService.save(user);
+        URI location = URI.create("/api/users/" + created.getId());
+        return ResponseEntity.created(location).body(created);
     }
 
-    @PutMapping("")
-    public User update(@RequestBody User user) {
-        return userService.save(user);
+
+    @PutMapping("/{id}")
+    public ResponseEntity<User> update(@PathVariable Long id, @Valid @RequestBody User user) {
+        return ResponseEntity.ok(userService.update(id, user));
     }
 
     @PatchMapping("/{id}")
-    public User updateUserById(@PathVariable Long id, @RequestBody User user) {
-        return userService.save(user, id);
+    public ResponseEntity<User> partialUpdate(@PathVariable Long id, @RequestBody Map<String, Object> updates) {
+        return ResponseEntity.ok(userService.partialUpdate(id, updates));
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
-        userService.delete(id);
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        if (userService.delete(id)) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.notFound().build();
     }
 }
