@@ -45,7 +45,7 @@ public class User {
 
     @CreatedDate
     @PastOrPresent(message = "Неужели Вы Джон Титор? Если нет - дата создания не может быть из будущего")
-    @Column(name = "created_at", nullable = false, columnDefinition = "TIMESTAMP WITH ZONE")
+    @Column(name = "created_at", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime createdAt;
 
     @PastOrPresent(message = "Неужели Вы Джон Титор? Если нет - дата обновления не может быть из будущего")
