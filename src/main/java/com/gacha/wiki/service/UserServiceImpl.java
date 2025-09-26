@@ -3,7 +3,6 @@ package com.gacha.wiki.service;
 import com.gacha.wiki.entity.User;
 import com.gacha.wiki.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
-import org.mapstruct.factory.Mappers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
