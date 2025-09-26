@@ -11,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -80,13 +79,11 @@ public class UserServiceImpl implements UserService {
             updates.remove("passwordHash");
         }
 
-
         try {
             objectMapper.updateValue(user, updates);
         } catch (JsonMappingException e) {
             throw new IllegalArgumentException(e);
         }
-
         return userRepository.save(user);
     }
 }
