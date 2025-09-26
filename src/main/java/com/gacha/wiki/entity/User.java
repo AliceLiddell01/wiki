@@ -5,6 +5,7 @@ import jakarta.validation.constraints.*;
 import lombok.*;
 import net.minidev.json.annotate.JsonIgnore;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.OffsetDateTime;
 
@@ -13,6 +14,7 @@ import java.time.OffsetDateTime;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@EntityListeners(AuditingEntityListener.class)
 @EqualsAndHashCode(of = "id")
 @Table(name = "wiki_users")
 @ToString(exclude = "passwordHash")
@@ -46,9 +48,11 @@ public class User {
     @Column(name = "created_at", nullable = false, columnDefinition = "TIMESTAMP WITH ZONE")
     private OffsetDateTime createdAt;
 
+    @PastOrPresent(message = "Неужели Вы Джон Титор? Если нет - дата обновления не может быть из будущего")
     @Column(name = "updated_at")
     private OffsetDateTime updatedAt;
 
+    @PastOrPresent(message = "Неужели Вы Джон Титор? Если нет - дата входа не может быть из будущего")
     @Column(name = "last_login_at")
     private OffsetDateTime lastLoginAt;
 
@@ -58,4 +62,11 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     private UserRole role = UserRole.USER;
+
+    @PrePersist
+    @PreUpdate
+    private void normalize(){
+        if (email != null) email = email.trim().toLowerCase();
+        if (username != null) username = username.trim();
+    }
 }
