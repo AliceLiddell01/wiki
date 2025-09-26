@@ -1,6 +1,8 @@
 spring:
   application:
     name: wiki
+  flyway:
+    enabled: false
 
   # Настройка базы данных
   datasource:
@@ -25,6 +27,7 @@ server:
   error:
     include-message: always
     include-binding-errors: always
+  address: ${DB_HOST}
 
 logging:
   level:
