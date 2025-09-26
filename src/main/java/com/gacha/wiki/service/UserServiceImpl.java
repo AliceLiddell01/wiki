@@ -1,5 +1,7 @@
 package com.gacha.wiki.service;
 
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gacha.wiki.entity.User;
 import com.gacha.wiki.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -8,17 +10,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
-    private final UserMapper userMapper;
+    private final ObjectMapper objectMapper;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, UserMapper userMapper) {
+    public UserServiceImpl(UserRepository userRepository, ObjectMapper objectMapper) {
         this.userRepository = userRepository;
-        this.userMapper = userMapper;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -35,19 +38,55 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public User save(User user, Long id) {
-        User existingUser = userRepository.findById(id).orElseThrow(EntityNotFoundException::new);
-        userMapper.updateUserFromDto(user, existingUser);
+    public boolean delete(Long id) {
+
+        if (userRepository.existsById(id)) {
+            userRepository.deleteById(id);
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public User findById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Пользователь с id: " + id + " не найден"));
+    }
+
+    @Override
+    @Transactional
+    public User update(Long id, User user) {
+        User existing = userRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Пользователь с id: " + id + " не найден"));
+
+        existing.setEmail(user.getEmail());
+        existing.setUsername(user.getUsername());
+        existing.setRole(user.getRole());
+        existing.setStatus(user.getStatus());
+        existing.setLastLoginAt(user.getLastLoginAt());
+
+        return userRepository.save(existing);
+    }
+
+    @Override
+    @Transactional
+    public User partialUpdate(Long id, Map<String, Object> updates) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Пользователь с id: " + id + " не найден"));
+
+        if (updates.containsKey("id") || updates.containsKey("passwordHash")) {
+            updates.remove("id");
+            updates.remove("passwordHash");
+        }
+
+
+        try {
+            objectMapper.updateValue(user, updates);
+        } catch (JsonMappingException e) {
+            throw new IllegalArgumentException(e);
+        }
+
         return userRepository.save(user);
-    }
-
-    @Override
-    public void delete(Long id) {
-        userRepository.deleteById(id);
-    }
-
-    @Override
-    public Optional<User> findById(Long id) {
-        return userRepository.findById(id);
     }
 }
