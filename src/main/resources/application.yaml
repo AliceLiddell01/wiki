@@ -27,7 +27,6 @@ server:
   error:
     include-message: always
     include-binding-errors: always
-  address: ${DB_HOST}
 
 logging:
   level:
